@@ -1,9 +1,10 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Token {
     End,
 
     Function,
     Let,
+    Print,
 
     LParen,
     RParen,

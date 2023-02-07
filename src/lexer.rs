@@ -53,6 +53,10 @@ impl<'a> Lexer<'a> {
         match self.chars.next() {
             Some(ch) => match ch {
                 '=' => Token::Equals,
+                '+' => Token::Plus,
+                '-' => Token::Minus,
+                '*' => Token::Star,
+                '/' => Token::Slash,
                 '(' => Token::LParen,
                 ')' => Token::RParen,
                 '{' => Token::LCurly,
@@ -74,8 +78,9 @@ impl<'a> Lexer<'a> {
             self.chars.next();
         }
         match name.as_str() {
-            "let" => Token::Let,
             "fn" => Token::Function,
+            "let" => Token::Let,
+            "print" => Token::Print,
             _ => Token::Name(name),
         }
     }
