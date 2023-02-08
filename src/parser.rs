@@ -1,7 +1,8 @@
 use std::{iter::Peekable, slice::Iter};
 
 use crate::ast::{
-    BinaryOpType, Binding, Block, Expr, Function, Global, Print, Program, Statement, UnaryOpType, IfStmt, WhileLoop,
+    BinaryOpType, Binding, Block, Expr, Function, Global, IfStmt, Print, Program, Statement,
+    UnaryOpType, WhileLoop,
 };
 use crate::token::Token;
 use crate::value::Value;

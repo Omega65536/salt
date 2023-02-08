@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
 use crate::ast::{
-    BinaryOpType, Binding, Expr, Function, Global, Print, Program, Statement, UnaryOpType, IfStmt, WhileLoop,
+    BinaryOpType, Binding, Expr, Function, Global, IfStmt, Print, Program, Statement, UnaryOpType,
+    WhileLoop,
 };
 use crate::value::Value;
 
@@ -44,10 +45,10 @@ impl Interpeter {
         match condition {
             Value::Boolean(true) => {
                 for statement in &if_stmt.body.statements {
-                    self.interpret_statement(&statement);
+                    self.interpret_statement(statement);
                 }
             }
-            Value::Boolean(false) => {},
+            Value::Boolean(false) => {}
             _ => panic!("Type error"),
         }
     }
@@ -58,7 +59,7 @@ impl Interpeter {
             match condition {
                 Value::Boolean(true) => {
                     for statement in &while_loop.body.statements {
-                        self.interpret_statement(&statement);
+                        self.interpret_statement(statement);
                     }
                 }
                 Value::Boolean(false) => break,
