@@ -22,6 +22,7 @@ pub enum Token {
     Minus,
     Star,
     Slash,
+    Percent,
     Bang,
 
     DoubleEqual,

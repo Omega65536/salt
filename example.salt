@@ -1,7 +1,10 @@
 fn main() {
-    let i = 0;
-    while (i < 10) {
-        print(2 * i);
-        let i = i + 1;
+    let i = 120;
+    let j = 2;
+    while j < i {
+        if i % j == 0 {
+            print(j);
+        }
+        let j = j + 1;
     }
 }

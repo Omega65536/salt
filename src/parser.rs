@@ -180,6 +180,16 @@ impl<'a> Parser<'a> {
                     };
                     current = Expr::BinaryOp(division);
                 }
+                Token::Percent => {
+                    self.advance();
+                    let right = self.parse_unary();
+                    let modulo = BinaryOp {
+                        op_type: BinaryOpType::Modulo,
+                        left: Box::new(current),
+                        right: Box::new(right),
+                    };
+                    current  = Expr::BinaryOp(modulo);
+                }
                 _ => return current,
             }
         }

@@ -123,6 +123,10 @@ impl Interpeter {
                 (Value::Integer(l), Value::Integer(r)) => Value::Integer(l / r),
                 _ => panic!("Type error"),
             },
+            BinaryOpType::Modulo => match (left_evaluated, right_evaluated) {
+                (Value::Integer(l), Value::Integer(r)) => Value::Integer(l % r),
+                _ => panic!("Type error"),
+            },
             BinaryOpType::EqualTo => match (left_evaluated, right_evaluated) {
                 (Value::Integer(l), Value::Integer(r)) => Value::Boolean(l == r),
                 _ => panic!("Type error"),

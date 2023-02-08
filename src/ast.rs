@@ -84,6 +84,7 @@ pub enum BinaryOpType {
     Subtraction,
     Multiplication,
     Division,
+    Modulo,
 
     EqualTo,
     NotEqualTo,
