@@ -1,3 +1,5 @@
+use crate::value::Value;
+
 #[derive(Debug)]
 pub struct Program {
     pub globals: Vec<Global>,
@@ -28,22 +30,38 @@ pub struct Block {
 #[derive(Debug)]
 pub struct Binding {
     pub name: String,
-    pub expression: Expression,
+    pub expr: Expr,
 }
 
 #[derive(Debug)]
 pub struct Print {
-    pub expression: Expression,
+    pub expr: Expr,
+}
+#[derive(Debug)]
+pub enum Expr {
+    Literal(Value),
+    Name(String),
+
+    UnaryOp(UnaryOpType, Box<Expr>),
+    BinaryOp(BinaryOpType, Box<Expr>, Box<Expr>),
 }
 
 #[derive(Debug)]
-pub enum Expression {
-    Integer(i64),
-    Name(String),
+pub enum UnaryOpType {
+    Negate,
+}
 
-    Addition(Box<Expression>, Box<Expression>),
-    Subtraction(Box<Expression>, Box<Expression>),
-    Multiplication(Box<Expression>, Box<Expression>),
-    Division(Box<Expression>, Box<Expression>),
-    Negate(Box<Expression>),
+#[derive(Debug)]
+pub enum BinaryOpType {
+    Addition,
+    Subtraction,
+    Multiplication,
+    Division,
+
+    EqualTo,
+    NotEqualTo,
+    LessThan,
+    LessThanOrEqualTo,
+    GreaterThan,
+    GreaterThanOrEqualTo,
 }

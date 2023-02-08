@@ -2,23 +2,34 @@
 pub enum Token {
     End,
 
+    // Keywords
     Function,
     Let,
     Print,
 
+    // Delimiter
     LParen,
     RParen,
     LCurly,
     RCurly,
+    Semicolon,
 
-    Equals,
-    Comma,
+    // Opetator
+    Equal,
     Plus,
     Minus,
     Star,
     Slash,
-    Semicolon,
+    Bang,
 
+    DoubleEqual,
+    NotEqual,
+    Less,
+    LessEqual,
+    Greater,
+    GreaterEqual,
+
+    // Name + Literals
     Name(String),
     Integer(i64),
 }

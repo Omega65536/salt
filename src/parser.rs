@@ -1,7 +1,10 @@
 use std::{iter::Peekable, slice::Iter};
 
-use crate::ast::{Binding, Block, Expression, Function, Global, Statement, Print, Program};
+use crate::ast::{
+    BinaryOpType, Binding, Block, Expr, Function, Global, Print, Program, Statement, UnaryOpType,
+};
 use crate::token::Token;
+use crate::value::Value;
 
 pub struct Parser<'a> {
     tokens: Peekable<Iter<'a, Token>>,
@@ -17,10 +20,7 @@ impl<'a> Parser<'a> {
     pub fn parse(&mut self) -> Program {
         let function = Global::Function(self.parse_function());
         let globals = vec![function];
-        let program = Program {
-            globals
-        };
-        program
+        Program { globals }
     }
 
     fn parse_function(&mut self) -> Function {
@@ -54,25 +54,20 @@ impl<'a> Parser<'a> {
     fn parse_let(&mut self) -> Statement {
         self.advance_specific(Token::Let);
         let name = self.parse_name();
-        self.advance_specific(Token::Equals);
-        let expression = self.parse_expression();
+        self.advance_specific(Token::Equal);
+        let expr = self.parse_expression();
         self.advance_specific(Token::Semicolon);
-        let binding = Binding {
-            name,
-            expression,
-        };
+        let binding = Binding { name, expr };
         Statement::Binding(binding)
     }
 
     fn parse_print(&mut self) -> Statement {
         self.advance_specific(Token::Print);
         self.advance_specific(Token::LParen);
-        let expression = self.parse_expression();
+        let expr = self.parse_expression();
         self.advance_specific(Token::RParen);
         self.advance_specific(Token::Semicolon);
-        let print = Print {
-            expression,
-        };
+        let print = Print { expr };
         Statement::Print(print)
     }
 
@@ -83,49 +78,105 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn parse_expression(&mut self) -> Expression {
-        self.parse_addition_and_subtraction()
+    fn parse_expression(&mut self) -> Expr {
+        self.parse_comparison()
     }
 
-    fn parse_addition_and_subtraction(&mut self) -> Expression {
+    fn parse_comparison(&mut self) -> Expr {
+        let left = self.parse_addition_and_subtraction();
+        match self.peek() {
+            Token::DoubleEqual => {
+                self.advance();
+                let right = self.parse_addition_and_subtraction();
+                Expr::BinaryOp(BinaryOpType::EqualTo, Box::new(left), Box::new(right))
+            }
+            Token::NotEqual => {
+                self.advance();
+                let right = self.parse_addition_and_subtraction();
+                Expr::BinaryOp(BinaryOpType::NotEqualTo, Box::new(left), Box::new(right))
+            }
+            Token::Less => {
+                self.advance();
+                let right = self.parse_addition_and_subtraction();
+                Expr::BinaryOp(BinaryOpType::LessThan, Box::new(left), Box::new(right))
+            }
+            Token::LessEqual => {
+                self.advance();
+                let right = self.parse_addition_and_subtraction();
+                Expr::BinaryOp(
+                    BinaryOpType::LessThanOrEqualTo,
+                    Box::new(left),
+                    Box::new(right),
+                )
+            }
+            Token::Greater => {
+                self.advance();
+                let right = self.parse_addition_and_subtraction();
+                Expr::BinaryOp(BinaryOpType::GreaterThan, Box::new(left), Box::new(right))
+            }
+            Token::GreaterEqual => {
+                self.advance();
+                let right = self.parse_addition_and_subtraction();
+                Expr::BinaryOp(
+                    BinaryOpType::GreaterThanOrEqualTo,
+                    Box::new(left),
+                    Box::new(right),
+                )
+            }
+
+            _ => left,
+        }
+    }
+
+    fn parse_addition_and_subtraction(&mut self) -> Expr {
         let mut current = self.parse_multiplication_and_division();
         loop {
             match self.peek() {
                 Token::Plus => {
                     self.advance();
                     let right = self.parse_multiplication_and_division();
-                    current = Expression::Addition(Box::new(current), Box::new(right));
+                    current =
+                        Expr::BinaryOp(BinaryOpType::Addition, Box::new(current), Box::new(right));
                 }
                 Token::Minus => {
                     self.advance();
                     let right = self.parse_multiplication_and_division();
-                    current = Expression::Subtraction(Box::new(current), Box::new(right));
+                    current = Expr::BinaryOp(
+                        BinaryOpType::Subtraction,
+                        Box::new(current),
+                        Box::new(right),
+                    );
                 }
                 _ => return current,
             }
         }
     }
 
-    fn parse_multiplication_and_division(&mut self) -> Expression {
+    fn parse_multiplication_and_division(&mut self) -> Expr {
         let mut current = self.parse_unary();
         loop {
             match self.peek() {
                 Token::Star => {
                     self.advance();
                     let right = self.parse_unary();
-                    current = Expression::Multiplication(Box::new(current), Box::new(right));
+                    current = Expr::BinaryOp(
+                        BinaryOpType::Multiplication,
+                        Box::new(current),
+                        Box::new(right),
+                    );
                 }
                 Token::Slash => {
                     self.advance();
                     let right = self.parse_unary();
-                    current = Expression::Division(Box::new(current), Box::new(right));
+                    current =
+                        Expr::BinaryOp(BinaryOpType::Division, Box::new(current), Box::new(right));
                 }
                 _ => return current,
             }
         }
     }
 
-    fn parse_unary(&mut self) -> Expression {
+    fn parse_unary(&mut self) -> Expr {
         match self.advance() {
             Token::LParen => {
                 let expression = self.parse_expression();
@@ -134,10 +185,10 @@ impl<'a> Parser<'a> {
             }
             Token::Minus => {
                 let unary = self.parse_unary();
-                Expression::Negate(Box::new(unary))
+                Expr::UnaryOp(UnaryOpType::Negate, Box::new(unary))
             }
-            Token::Integer(integer) => Expression::Integer(*integer),
-            Token::Name(name) => Expression::Name(name.to_string()),
+            Token::Integer(integer) => Expr::Literal(Value::Integer(*integer)),
+            Token::Name(name) => Expr::Name(name.to_string()),
             other => panic!("Error while trying to parse expression: {other:?}"),
         }
     }

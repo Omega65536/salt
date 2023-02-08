@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use crate::{ast::{Program, Function, Global, Statement, Print, Expression, Binding}, value::Value};
+use crate::ast::{
+    BinaryOpType, Binding, Expr, Function, Global, Print, Program, Statement, UnaryOpType,
+};
+use crate::value::Value;
 
 pub struct Interpeter {
     environment: HashMap<String, Value>,
@@ -16,7 +19,7 @@ impl Interpeter {
     pub fn interpret(&mut self, program: Program) {
         let main_function = &program.globals[0];
         match main_function {
-            Global::Function(function) => self.interpret_function(&function), 
+            Global::Function(function) => self.interpret_function(function),
         }
     }
 
@@ -35,62 +38,91 @@ impl Interpeter {
     }
 
     fn interpret_binding(&mut self, binding: &Binding) {
-        let evaluated = self.interpret_expression(&binding.expression);
+        let evaluated = self.interpret_expression(&binding.expr);
         self.environment.insert(binding.name.clone(), evaluated);
     }
 
     fn interpret_print(&self, print: &Print) {
-        let evaluated = self.interpret_expression(&print.expression);
+        let evaluated = self.interpret_expression(&print.expr);
         match evaluated {
-            Value::Integer(i) => println!("{}", i),
+            Value::Integer(v) => println!("{v}"),
+            Value::Boolean(v) => println!("{v}"),
         }
     }
 
-    fn interpret_expression(&self, expression: &Expression) -> Value {
+    fn interpret_expression(&self, expression: &Expr) -> Value {
         match expression {
-            Expression::Integer(i) => Value::Integer(*i),
-            Expression::Negate(expression) => {
-                let evaluated = self.interpret_expression(expression);
-                match evaluated {
-                    Value::Integer(i) => Value::Integer(-i),
-                }
-            },
-            Expression::Addition(left, right) => {
-                let left_evaluated = self.interpret_expression(left);
-                let right_evaluated = self.interpret_expression(right);
-                match (left_evaluated, right_evaluated) {
-                    (Value::Integer(a), Value::Integer(b)) => Value::Integer(a + b),
-                    _ => panic!("Type error"),
-                }
+            Expr::Literal(v) => *v,
+            Expr::UnaryOp(unary_op_type, expr) => self.interpret_unary_op(unary_op_type, expr),
+            Expr::BinaryOp(binary_op_type, left, right) => {
+                self.interpret_binary_op(binary_op_type, left, right)
             }
-            Expression::Subtraction(left, right) => {
-                let left_evaluated = self.interpret_expression(left);
-                let right_evaluated = self.interpret_expression(right);
-                match (left_evaluated, right_evaluated) {
-                    (Value::Integer(a), Value::Integer(b)) => Value::Integer(a - b),
-                    _ => panic!("Type error"),
-                }
-            }
-            Expression::Multiplication(left, right) => {
-                let left_evaluated = self.interpret_expression(left);
-                let right_evaluated = self.interpret_expression(right);
-                match (left_evaluated, right_evaluated) {
-                    (Value::Integer(a), Value::Integer(b)) => Value::Integer(a * b),
-                    _ => panic!("Type error"),
-                }
-            }
-            Expression::Division(left, right) => {
-                let left_evaluated = self.interpret_expression(left);
-                let right_evaluated = self.interpret_expression(right);
-                match (left_evaluated, right_evaluated) {
-                    (Value::Integer(a), Value::Integer(b)) => Value::Integer(a / b),
-                    _ => panic!("Type error"),
-                }
-            }
-            Expression::Name(name) => {
+            Expr::Name(name) => {
                 let evaluated = self.environment.get(name).unwrap();
                 *evaluated
             }
+        }
+    }
+
+    fn interpret_unary_op(&self, unary_op_type: &UnaryOpType, expr: &Expr) -> Value {
+        let expr_evaluated = self.interpret_expression(expr);
+        match unary_op_type {
+            UnaryOpType::Negate => match expr_evaluated {
+                Value::Integer(v) => Value::Integer(-v),
+                _ => panic!("Type error"),
+            },
+        }
+    }
+
+    fn interpret_binary_op(
+        &self,
+        binary_op_type: &BinaryOpType,
+        left: &Expr,
+        right: &Expr,
+    ) -> Value {
+        let left_evaluated = self.interpret_expression(left);
+        let right_evaluated = self.interpret_expression(right);
+        match binary_op_type {
+            BinaryOpType::Addition => match (left_evaluated, right_evaluated) {
+                (Value::Integer(l), Value::Integer(r)) => Value::Integer(l + r),
+                _ => panic!("Type error"),
+            },
+            BinaryOpType::Subtraction => match (left_evaluated, right_evaluated) {
+                (Value::Integer(l), Value::Integer(r)) => Value::Integer(l - r),
+                _ => panic!("Type error"),
+            },
+            BinaryOpType::Multiplication => match (left_evaluated, right_evaluated) {
+                (Value::Integer(l), Value::Integer(r)) => Value::Integer(l * r),
+                _ => panic!("Type error"),
+            },
+            BinaryOpType::Division => match (left_evaluated, right_evaluated) {
+                (Value::Integer(l), Value::Integer(r)) => Value::Integer(l / r),
+                _ => panic!("Type error"),
+            },
+            BinaryOpType::EqualTo => match (left_evaluated, right_evaluated) {
+                (Value::Integer(l), Value::Integer(r)) => Value::Boolean(l == r),
+                _ => panic!("Type error"),
+            },
+            BinaryOpType::NotEqualTo => match (left_evaluated, right_evaluated) {
+                (Value::Integer(l), Value::Integer(r)) => Value::Boolean(l != r),
+                _ => panic!("Type error"),
+            },
+            BinaryOpType::LessThan => match (left_evaluated, right_evaluated) {
+                (Value::Integer(l), Value::Integer(r)) => Value::Boolean(l < r),
+                _ => panic!("Type error"),
+            },
+            BinaryOpType::LessThanOrEqualTo => match (left_evaluated, right_evaluated) {
+                (Value::Integer(l), Value::Integer(r)) => Value::Boolean(l <= r),
+                _ => panic!("Type error"),
+            },
+            BinaryOpType::GreaterThan => match (left_evaluated, right_evaluated) {
+                (Value::Integer(l), Value::Integer(r)) => Value::Boolean(l > r),
+                _ => panic!("Type error"),
+            },
+            BinaryOpType::GreaterThanOrEqualTo => match (left_evaluated, right_evaluated) {
+                (Value::Integer(l), Value::Integer(r)) => Value::Boolean(l >= r),
+                _ => panic!("Type error"),
+            },
         }
     }
 }

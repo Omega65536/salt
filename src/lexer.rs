@@ -52,7 +52,6 @@ impl<'a> Lexer<'a> {
     fn next_symbol(&mut self) -> Token {
         match self.chars.next() {
             Some(ch) => match ch {
-                '=' => Token::Equals,
                 '+' => Token::Plus,
                 '-' => Token::Minus,
                 '*' => Token::Star,
@@ -62,7 +61,35 @@ impl<'a> Lexer<'a> {
                 '{' => Token::LCurly,
                 '}' => Token::RCurly,
                 ';' => Token::Semicolon,
-                _ => panic!("Unknown symbol: {:?}", ch),
+                '=' => match self.chars.peek() {
+                    Some('=') => {
+                        self.chars.next();
+                        Token::DoubleEqual
+                    }
+                    _ => Token::Equal,
+                },
+                '!' => match self.chars.peek() {
+                    Some('=') => {
+                        self.chars.next();
+                        Token::NotEqual
+                    }
+                    _ => Token::Bang,
+                },
+                '<' => match self.chars.peek() {
+                    Some('=') => {
+                        self.chars.next();
+                        Token::LessEqual
+                    }
+                    _ => Token::Less,
+                },
+                '>' => match self.chars.peek() {
+                    Some('=') => {
+                        self.chars.next();
+                        Token::GreaterEqual
+                    }
+                    _ => Token::Greater,
+                },
+                _ => panic!("Unknown symbol: {ch:?}"),
             },
             None => panic!("Internal Error"),
         }
