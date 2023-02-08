@@ -18,8 +18,15 @@ pub struct Function {
 
 #[derive(Debug)]
 pub enum Statement {
+    If(IfStmt),
     Binding(Binding),
     Print(Print),
+}
+
+#[derive(Debug)]
+pub struct IfStmt {
+    pub condition: Expr,
+    pub body: Block,
 }
 
 #[derive(Debug)]

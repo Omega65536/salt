@@ -4,6 +4,7 @@ pub enum Token {
 
     // Keywords
     Function,
+    If,
     Let,
     Print,
 

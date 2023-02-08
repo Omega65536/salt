@@ -106,6 +106,7 @@ impl<'a> Lexer<'a> {
         }
         match name.as_str() {
             "fn" => Token::Function,
+            "if" => Token::If,
             "let" => Token::Let,
             "print" => Token::Print,
             _ => Token::Name(name),

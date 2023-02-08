@@ -1,7 +1,7 @@
 use std::{iter::Peekable, slice::Iter};
 
 use crate::ast::{
-    BinaryOpType, Binding, Block, Expr, Function, Global, Print, Program, Statement, UnaryOpType,
+    BinaryOpType, Binding, Block, Expr, Function, Global, Print, Program, Statement, UnaryOpType, IfStmt,
 };
 use crate::token::Token;
 use crate::value::Value;
@@ -45,10 +45,19 @@ impl<'a> Parser<'a> {
 
     fn parse_statement(&mut self) -> Statement {
         match self.peek() {
+            Token::If => self.parse_if(),
             Token::Let => self.parse_let(),
             Token::Print => self.parse_print(),
             other => panic!("Error while trying to parse statement: {other:?}"),
         }
+    }
+
+    fn parse_if(&mut self) -> Statement {
+        self.advance_specific(Token::If);
+        let condition = self.parse_expression();
+        let body = self.parse_block();
+        let if_stmt = IfStmt { condition, body };
+        Statement::If(if_stmt)
     }
 
     fn parse_let(&mut self) -> Statement {

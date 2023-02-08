@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::ast::{
-    BinaryOpType, Binding, Expr, Function, Global, Print, Program, Statement, UnaryOpType,
+    BinaryOpType, Binding, Expr, Function, Global, Print, Program, Statement, UnaryOpType, IfStmt,
 };
 use crate::value::Value;
 
@@ -32,8 +32,22 @@ impl Interpeter {
 
     fn interpret_statement(&mut self, statement: &Statement) {
         match statement {
+            Statement::If(if_stmt) => self.interpret_if(if_stmt),
             Statement::Binding(binding) => self.interpret_binding(binding),
             Statement::Print(print) => self.interpret_print(print),
+        }
+    }
+
+    fn interpret_if(&mut self, if_stmt: &IfStmt) {
+        let condition = self.interpret_expression(&if_stmt.condition);
+        match condition {
+            Value::Boolean(true) => {
+                for statement in &if_stmt.body.statements {
+                    self.interpret_statement(&statement);
+                }
+            }
+            Value::Boolean(false) => {},
+            _ => panic!("Type error"),
         }
     }
 
