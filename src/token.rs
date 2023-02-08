@@ -5,6 +5,7 @@ pub enum Token {
     // Keywords
     Function,
     If,
+    While,
     Let,
     Print,
 

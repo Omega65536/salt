@@ -28,7 +28,7 @@ impl<'a> Lexer<'a> {
     fn next_token(&mut self) -> Option<Token> {
         match self.chars.peek() {
             Some(ch) => match ch {
-                ' ' | '\n' => {
+                ' ' | '\n' | '\t' => {
                     self.chars.next();
                     None
                 }
@@ -107,6 +107,7 @@ impl<'a> Lexer<'a> {
         match name.as_str() {
             "fn" => Token::Function,
             "if" => Token::If,
+            "while" => Token::While,
             "let" => Token::Let,
             "print" => Token::Print,
             _ => Token::Name(name),

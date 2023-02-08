@@ -19,12 +19,19 @@ pub struct Function {
 #[derive(Debug)]
 pub enum Statement {
     If(IfStmt),
+    While(WhileLoop),
     Binding(Binding),
     Print(Print),
 }
 
 #[derive(Debug)]
 pub struct IfStmt {
+    pub condition: Expr,
+    pub body: Block,
+}
+
+#[derive(Debug)]
+pub struct WhileLoop {
     pub condition: Expr,
     pub body: Block,
 }

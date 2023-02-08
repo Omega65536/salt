@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::ast::{
-    BinaryOpType, Binding, Expr, Function, Global, Print, Program, Statement, UnaryOpType, IfStmt,
+    BinaryOpType, Binding, Expr, Function, Global, Print, Program, Statement, UnaryOpType, IfStmt, WhileLoop,
 };
 use crate::value::Value;
 
@@ -33,6 +33,7 @@ impl Interpeter {
     fn interpret_statement(&mut self, statement: &Statement) {
         match statement {
             Statement::If(if_stmt) => self.interpret_if(if_stmt),
+            Statement::While(while_loop) => self.interpret_while(while_loop),
             Statement::Binding(binding) => self.interpret_binding(binding),
             Statement::Print(print) => self.interpret_print(print),
         }
@@ -48,6 +49,21 @@ impl Interpeter {
             }
             Value::Boolean(false) => {},
             _ => panic!("Type error"),
+        }
+    }
+
+    fn interpret_while(&mut self, while_loop: &WhileLoop) {
+        loop {
+            let condition = self.interpret_expression(&while_loop.condition);
+            match condition {
+                Value::Boolean(true) => {
+                    for statement in &while_loop.body.statements {
+                        self.interpret_statement(&statement);
+                    }
+                }
+                Value::Boolean(false) => break,
+                _ => panic!("Type error"),
+            }
         }
     }
 

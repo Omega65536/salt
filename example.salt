@@ -1,13 +1,7 @@
 fn main() {
-    let x = 1;
-    if x == 1 {
-        print(1);
-    }
-    if x > 1 {
-        print(234);
-    }
-    if x != 0 {
-        print(0);
+    let i = 0;
+    while (i < 10) {
+        print(2 * i);
+        let i = i + 1;
     }
 }
-
