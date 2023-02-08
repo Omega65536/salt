@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use crate::ast::{
-    BinaryOpType, Binding, Expr, Function, Global, IfStmt, Print, Program, Statement, UnaryOpType,
-    WhileLoop,
+    BinaryOp, BinaryOpType, Binding, Expr, Function, Global, IfStmt, Print, Program, Statement,
+    UnaryOp, UnaryOpType, WhileLoop,
 };
 use crate::value::Value;
 
@@ -84,10 +84,8 @@ impl Interpeter {
     fn interpret_expression(&self, expression: &Expr) -> Value {
         match expression {
             Expr::Literal(v) => *v,
-            Expr::UnaryOp(unary_op_type, expr) => self.interpret_unary_op(unary_op_type, expr),
-            Expr::BinaryOp(binary_op_type, left, right) => {
-                self.interpret_binary_op(binary_op_type, left, right)
-            }
+            Expr::UnaryOp(unary_op) => self.interpret_unary_op(unary_op),
+            Expr::BinaryOp(binary_op) => self.interpret_binary_op(binary_op),
             Expr::Name(name) => {
                 let evaluated = self.environment.get(name).unwrap();
                 *evaluated
@@ -95,9 +93,9 @@ impl Interpeter {
         }
     }
 
-    fn interpret_unary_op(&self, unary_op_type: &UnaryOpType, expr: &Expr) -> Value {
-        let expr_evaluated = self.interpret_expression(expr);
-        match unary_op_type {
+    fn interpret_unary_op(&self, op: &UnaryOp) -> Value {
+        let expr_evaluated = self.interpret_expression(&op.expr);
+        match op.op_type {
             UnaryOpType::Negate => match expr_evaluated {
                 Value::Integer(v) => Value::Integer(-v),
                 _ => panic!("Type error"),
@@ -105,15 +103,10 @@ impl Interpeter {
         }
     }
 
-    fn interpret_binary_op(
-        &self,
-        binary_op_type: &BinaryOpType,
-        left: &Expr,
-        right: &Expr,
-    ) -> Value {
-        let left_evaluated = self.interpret_expression(left);
-        let right_evaluated = self.interpret_expression(right);
-        match binary_op_type {
+    fn interpret_binary_op(&self, op: &BinaryOp) -> Value {
+        let left_evaluated = self.interpret_expression(&op.left);
+        let right_evaluated = self.interpret_expression(&op.right);
+        match op.op_type {
             BinaryOpType::Addition => match (left_evaluated, right_evaluated) {
                 (Value::Integer(l), Value::Integer(r)) => Value::Integer(l + r),
                 _ => panic!("Type error"),

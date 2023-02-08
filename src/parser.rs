@@ -1,8 +1,8 @@
 use std::{iter::Peekable, slice::Iter};
 
 use crate::ast::{
-    BinaryOpType, Binding, Block, Expr, Function, Global, IfStmt, Print, Program, Statement,
-    UnaryOpType, WhileLoop,
+    BinaryOp, BinaryOpType, Binding, Block, Expr, Function, Global, IfStmt, Print, Program,
+    Statement, UnaryOp, UnaryOpType, WhileLoop,
 };
 use crate::token::Token;
 use crate::value::Value;
@@ -103,47 +103,27 @@ impl<'a> Parser<'a> {
 
     fn parse_comparison(&mut self) -> Expr {
         let left = self.parse_addition_and_subtraction();
-        match self.peek() {
-            Token::DoubleEqual => {
+        let opt_comparison = match self.peek() {
+            Token::DoubleEqual => Some(BinaryOpType::EqualTo),
+            Token::NotEqual => Some(BinaryOpType::NotEqualTo),
+            Token::Less => Some(BinaryOpType::LessThan),
+            Token::LessEqual => Some(BinaryOpType::LessThanOrEqualTo),
+            Token::Greater => Some(BinaryOpType::GreaterThan),
+            Token::GreaterEqual => Some(BinaryOpType::GreaterThanOrEqualTo),
+            _ => None,
+        };
+        match opt_comparison {
+            Some(comparison) => {
                 self.advance();
                 let right = self.parse_addition_and_subtraction();
-                Expr::BinaryOp(BinaryOpType::EqualTo, Box::new(left), Box::new(right))
+                let op = BinaryOp {
+                    op_type: comparison,
+                    left: Box::new(left),
+                    right: Box::new(right),
+                };
+                Expr::BinaryOp(op)
             }
-            Token::NotEqual => {
-                self.advance();
-                let right = self.parse_addition_and_subtraction();
-                Expr::BinaryOp(BinaryOpType::NotEqualTo, Box::new(left), Box::new(right))
-            }
-            Token::Less => {
-                self.advance();
-                let right = self.parse_addition_and_subtraction();
-                Expr::BinaryOp(BinaryOpType::LessThan, Box::new(left), Box::new(right))
-            }
-            Token::LessEqual => {
-                self.advance();
-                let right = self.parse_addition_and_subtraction();
-                Expr::BinaryOp(
-                    BinaryOpType::LessThanOrEqualTo,
-                    Box::new(left),
-                    Box::new(right),
-                )
-            }
-            Token::Greater => {
-                self.advance();
-                let right = self.parse_addition_and_subtraction();
-                Expr::BinaryOp(BinaryOpType::GreaterThan, Box::new(left), Box::new(right))
-            }
-            Token::GreaterEqual => {
-                self.advance();
-                let right = self.parse_addition_and_subtraction();
-                Expr::BinaryOp(
-                    BinaryOpType::GreaterThanOrEqualTo,
-                    Box::new(left),
-                    Box::new(right),
-                )
-            }
-
-            _ => left,
+            None => left,
         }
     }
 
@@ -154,17 +134,22 @@ impl<'a> Parser<'a> {
                 Token::Plus => {
                     self.advance();
                     let right = self.parse_multiplication_and_division();
-                    current =
-                        Expr::BinaryOp(BinaryOpType::Addition, Box::new(current), Box::new(right));
+                    let addition = BinaryOp {
+                        op_type: BinaryOpType::Addition,
+                        left: Box::new(current),
+                        right: Box::new(right),
+                    };
+                    current = Expr::BinaryOp(addition);
                 }
                 Token::Minus => {
                     self.advance();
                     let right = self.parse_multiplication_and_division();
-                    current = Expr::BinaryOp(
-                        BinaryOpType::Subtraction,
-                        Box::new(current),
-                        Box::new(right),
-                    );
+                    let subtraction = BinaryOp {
+                        op_type: BinaryOpType::Subtraction,
+                        left: Box::new(current),
+                        right: Box::new(right),
+                    };
+                    current = Expr::BinaryOp(subtraction);
                 }
                 _ => return current,
             }
@@ -178,17 +163,22 @@ impl<'a> Parser<'a> {
                 Token::Star => {
                     self.advance();
                     let right = self.parse_unary();
-                    current = Expr::BinaryOp(
-                        BinaryOpType::Multiplication,
-                        Box::new(current),
-                        Box::new(right),
-                    );
+                    let multiplication = BinaryOp {
+                        op_type: BinaryOpType::Multiplication,
+                        left: Box::new(current),
+                        right: Box::new(right),
+                    };
+                    current = Expr::BinaryOp(multiplication);
                 }
                 Token::Slash => {
                     self.advance();
                     let right = self.parse_unary();
-                    current =
-                        Expr::BinaryOp(BinaryOpType::Division, Box::new(current), Box::new(right));
+                    let division = BinaryOp {
+                        op_type: BinaryOpType::Division,
+                        left: Box::new(current),
+                        right: Box::new(right),
+                    };
+                    current = Expr::BinaryOp(division);
                 }
                 _ => return current,
             }
@@ -204,7 +194,11 @@ impl<'a> Parser<'a> {
             }
             Token::Minus => {
                 let unary = self.parse_unary();
-                Expr::UnaryOp(UnaryOpType::Negate, Box::new(unary))
+                let negate = UnaryOp {
+                    op_type: UnaryOpType::Negate,
+                    expr: Box::new(unary),
+                };
+                Expr::UnaryOp(negate)
             }
             Token::Integer(integer) => Expr::Literal(Value::Integer(*integer)),
             Token::Name(name) => Expr::Name(name.to_string()),

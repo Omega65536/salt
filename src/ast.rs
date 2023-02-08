@@ -56,8 +56,21 @@ pub enum Expr {
     Literal(Value),
     Name(String),
 
-    UnaryOp(UnaryOpType, Box<Expr>),
-    BinaryOp(BinaryOpType, Box<Expr>, Box<Expr>),
+    UnaryOp(UnaryOp),
+    BinaryOp(BinaryOp),
+}
+
+#[derive(Debug)]
+pub struct UnaryOp {
+    pub op_type: UnaryOpType,
+    pub expr: Box<Expr>,
+}
+
+#[derive(Debug)]
+pub struct BinaryOp {
+    pub op_type: BinaryOpType,
+    pub left: Box<Expr>,
+    pub right: Box<Expr>,
 }
 
 #[derive(Debug)]
