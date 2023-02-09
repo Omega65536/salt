@@ -1,9 +1,31 @@
 fn main() {
-    let a = f() + f();
-    print(a);
+    let i = 1000 * 1000;
+    while i < 1000 * 1000 + 1000 {
+        if prime(i) {
+	    print(i);
+	}
+	let i = i + 1;
+    }
 }
 
-fn f() {
-    return 2;
+fn add(x, y) {
+    return x + y;
 }
 
+fn fac(x) {
+    if x == 1 {
+    	return 1;
+    }
+    return x * fac(x - 1);
+}
+
+fn prime(i) {
+    let j = 2;
+    while j < i {
+        if i % j == 0 {
+	    return false;
+	}
+	let j = j + 1;
+    }
+    return true;
+}

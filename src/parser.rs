@@ -2,7 +2,7 @@ use std::{iter::Peekable, slice::Iter};
 
 use crate::ast::{
     BinaryOp, BinaryOpType, Binding, Block, Expr, Function, Global, IfStmt, Print, Program,
-    Statement, UnaryOp, UnaryOpType, WhileLoop, Return,
+    Statement, UnaryOp, UnaryOpType, WhileLoop, Return, Call,
 };
 use crate::token::Token;
 use crate::value::Value;
@@ -30,11 +30,31 @@ impl<'a> Parser<'a> {
     fn parse_function(&mut self) -> Global {
         self.advance();
         let name = self.parse_name();
-        self.advance_specific(Token::LParen);
-        self.advance_specific(Token::RParen);
+        let parameters = self.parse_parameters();
         let block = self.parse_block();
-        let function = Function { name, block };
+        let function = Function { name, parameters, block };
         Global::Function(function)
+    }
+
+    fn parse_parameters(&mut self) -> Vec<String> {
+        self.advance_specific(Token::LParen);
+        let mut parameters = Vec::new();
+        if self.peek() == &Token::RParen {
+            self.advance();
+            return parameters
+        }
+        let first_parameter = self.parse_name();
+        parameters.push(first_parameter);
+
+        loop {
+            match self.advance() {
+                Token::RParen => return parameters,
+                Token::Comma => (),
+                other => panic!("Error while trying to parse parameter: {other:?}"),
+            }
+            let parameter = self.parse_name();
+            parameters.push(parameter);
+        }
     }
 
     fn parse_block(&mut self) -> Block {
@@ -228,6 +248,8 @@ impl<'a> Parser<'a> {
                 let n = name.to_string();
                 self.parse_name_or_function(n)
             }
+            Token::True => Expr::Literal(Value::Boolean(true)),
+            Token::False => Expr::Literal(Value::Boolean(false)),
             other => panic!("Error while trying to parse expression: {other:?}"),
         }
     }
@@ -235,11 +257,32 @@ impl<'a> Parser<'a> {
     fn parse_name_or_function(&mut self, name: String) -> Expr {
         match self.peek() {
             Token::LParen => {
-                self.advance_specific(Token::LParen);
-                self.advance_specific(Token::RParen);
-                Expr::Call(name)
+                let arguments = self.parse_arguments();
+                let call = Call { name, arguments };
+                Expr::Call(call)
             }
             _ => Expr::Name(name),
+        }
+    }
+    
+    fn parse_arguments(&mut self) -> Vec<Expr> {
+        self.advance_specific(Token::LParen);
+        let mut arguments = Vec::new();
+        if self.peek() == &Token::RParen {
+            self.advance();
+            return arguments
+        }
+        let first_argument = self.parse_expression();
+        arguments.push(first_argument);
+
+        loop {
+            match self.advance() {
+                Token::RParen => return arguments,
+                Token::Comma => (),
+                other => panic!("Error while trying to parse arguments: {other:?}"),
+            }
+            let argument = self.parse_expression();
+            arguments.push(argument);
         }
     }
 

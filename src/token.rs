@@ -9,6 +9,8 @@ pub enum Token {
     Return,
     Let,
     Print,
+    True,
+    False,
 
     // Delimiter
     LParen,
@@ -16,6 +18,7 @@ pub enum Token {
     LCurly,
     RCurly,
     Semicolon,
+    Comma,
 
     // Opetator
     Equal,

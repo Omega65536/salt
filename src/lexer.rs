@@ -62,6 +62,7 @@ impl<'a> Lexer<'a> {
                 '{' => Token::LCurly,
                 '}' => Token::RCurly,
                 ';' => Token::Semicolon,
+                ',' => Token::Comma,
                 '=' => match self.chars.peek() {
                     Some('=') => {
                         self.chars.next();
@@ -112,6 +113,8 @@ impl<'a> Lexer<'a> {
             "return" => Token::Return,
             "let" => Token::Let,
             "print" => Token::Print,
+            "true" => Token::True,
+            "false" => Token::False,
             _ => Token::Name(name),
         }
     }

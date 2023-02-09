@@ -13,6 +13,7 @@ pub enum Global {
 #[derive(Debug)]
 pub struct Function {
     pub name: String,
+    pub parameters: Vec<String>,
     pub block: Block,
 }
 
@@ -62,10 +63,16 @@ pub struct Print {
 pub enum Expr {
     Literal(Value),
     Name(String),
-    Call(String),
+    Call(Call),
 
     UnaryOp(UnaryOp),
     BinaryOp(BinaryOp),
+}
+
+#[derive(Debug)]
+pub struct Call {
+    pub name: String,
+    pub arguments: Vec<Expr>,
 }
 
 #[derive(Debug)]

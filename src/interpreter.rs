@@ -31,11 +31,18 @@ impl Interpeter {
             .get("main")
             .expect("Could not find main function");
         let mut env = Environment::new();
-        self.interpret_function(main_function, &mut env);
+        let main_arguments = Vec::new();
+        self.interpret_function(main_function, main_arguments, &mut env);
     }
 
-    fn interpret_function(&self, function: &Function, env: &mut Environment)  -> Value {
-        println!("<Interpreting {:?}>", function.name);
+    fn interpret_function(&self, function: &Function, arguments: Vec<Value>, env: &mut Environment)  -> Value {
+        //println!("<Interpreting {:?} with {:?} = {:?}>", function.name, function.parameters, arguments);
+        if function.parameters.len() != arguments.len() {
+            panic!("Invalid arity!");
+        }
+        for (parameter, argument) in function.parameters.iter().zip(arguments) {
+            env.set(parameter.to_string(), argument);
+        }
         for statement in &function.block.statements {
             if let Some(value) = self.interpret_statement(statement, env) {
                 return value
@@ -112,16 +119,18 @@ impl Interpeter {
     fn interpret_expression(&self, expression: &Expr, env: &Environment) -> Value {
         match expression {
             Expr::Literal(v) => *v,
-            Expr::Call(name) => {
-                let function = self.functions.get(name).unwrap();
+            Expr::Call(call) => {
+                let function = self.functions.get(&call.name).expect("No such function");
                 let mut new_env = Environment::new();
-                let evaluated = self.interpret_function(function, &mut new_env);
-                evaluated
+                let arguments_evaluated = call.arguments.iter().map(
+                    |expr| self.interpret_expression(expr, env)
+                ).collect();
+                self.interpret_function(function, arguments_evaluated, &mut new_env)
             }
             Expr::UnaryOp(unary_op) => self.interpret_unary_op(unary_op, env),
             Expr::BinaryOp(binary_op) => self.interpret_binary_op(binary_op, env),
             Expr::Name(name) => {
-                let evaluated = env.get(name).unwrap();
+                let evaluated = env.get(name).expect("No such variable");
                 *evaluated
             }
         }
