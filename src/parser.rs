@@ -188,7 +188,7 @@ impl<'a> Parser<'a> {
                         left: Box::new(current),
                         right: Box::new(right),
                     };
-                    current  = Expr::BinaryOp(modulo);
+                    current = Expr::BinaryOp(modulo);
                 }
                 _ => return current,
             }

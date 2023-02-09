@@ -4,8 +4,8 @@ use crate::ast::{
     BinaryOp, BinaryOpType, Binding, Expr, Function, Global, IfStmt, Print, Program, Statement,
     UnaryOp, UnaryOpType, WhileLoop,
 };
-use crate::value::Value;
 use crate::environment::Environment;
+use crate::value::Value;
 
 pub struct Interpeter {
     functions: HashMap<String, Function>,
@@ -21,12 +21,17 @@ impl Interpeter {
     pub fn interpret(&mut self, program: Program) {
         for global in program.globals {
             match global {
-                Global::Function(function) => self.functions.insert(function.name.clone(), function),
+                Global::Function(function) => {
+                    self.functions.insert(function.name.clone(), function)
+                }
             };
         }
-        let opt_main_function = self.functions.get("main").expect("Could not find main function");
+        let main_function = self
+            .functions
+            .get("main")
+            .expect("Could not find main function");
         let mut env = Environment::new();
-        self.interpret_function(&opt_main_function, &mut env);
+        self.interpret_function(main_function, &mut env);
     }
 
     fn interpret_function(&self, function: &Function, env: &mut Environment) {

@@ -1,15 +1,15 @@
 mod ast;
+mod environment;
 mod interpreter;
 mod lexer;
 mod parser;
 mod token;
 mod value;
-mod environment;
 
 use crate::interpreter::Interpeter;
 use crate::lexer::Lexer;
 use crate::parser::Parser;
-use std::{fs, env};
+use std::{env, fs};
 
 fn main() {
     let args: Vec<String> = env::args().collect();

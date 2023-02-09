@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::value::Value;
 
 pub struct Environment {
-    values: HashMap<String, Value>
+    values: HashMap<String, Value>,
 }
 
 impl Environment {
