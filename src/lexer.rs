@@ -109,6 +109,7 @@ impl<'a> Lexer<'a> {
             "fn" => Token::Function,
             "if" => Token::If,
             "while" => Token::While,
+            "return" => Token::Return,
             "let" => Token::Let,
             "print" => Token::Print,
             _ => Token::Name(name),

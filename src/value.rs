@@ -1,5 +1,6 @@
 #[derive(Debug, Clone, Copy)]
 pub enum Value {
-    Integer(i64),
+    Unit,
     Boolean(bool),
+    Integer(i64),
 }

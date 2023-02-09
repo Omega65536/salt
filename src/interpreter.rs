@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::ast::{
     BinaryOp, BinaryOpType, Binding, Expr, Function, Global, IfStmt, Print, Program, Statement,
-    UnaryOp, UnaryOpType, WhileLoop,
+    UnaryOp, UnaryOpType, WhileLoop, Return,
 };
 use crate::environment::Environment;
 use crate::value::Value;
@@ -34,66 +34,90 @@ impl Interpeter {
         self.interpret_function(main_function, &mut env);
     }
 
-    fn interpret_function(&self, function: &Function, env: &mut Environment) {
+    fn interpret_function(&self, function: &Function, env: &mut Environment)  -> Value {
         println!("<Interpreting {:?}>", function.name);
         for statement in &function.block.statements {
-            self.interpret_statement(statement, env);
+            if let Some(value) = self.interpret_statement(statement, env) {
+                return value
+            }
         }
+        Value::Unit
     }
 
-    fn interpret_statement(&self, statement: &Statement, env: &mut Environment) {
+    fn interpret_statement(&self, statement: &Statement, env: &mut Environment) -> Option<Value> {
         match statement {
             Statement::If(if_stmt) => self.interpret_if(if_stmt, env),
             Statement::While(while_loop) => self.interpret_while(while_loop, env),
+            Statement::Return(return_stmt) => self.interpret_return(return_stmt, env),
             Statement::Binding(binding) => self.interpret_binding(binding, env),
             Statement::Print(print) => self.interpret_print(print, env),
         }
     }
 
-    fn interpret_if(&self, if_stmt: &IfStmt, env: &mut Environment) {
+    fn interpret_if(&self, if_stmt: &IfStmt, env: &mut Environment) -> Option<Value> {
         let condition = self.interpret_expression(&if_stmt.condition, env);
         match condition {
             Value::Boolean(true) => {
                 for statement in &if_stmt.body.statements {
-                    self.interpret_statement(statement, env);
+                    if let Some(value) = self.interpret_statement(statement, env) {
+                        return Some(value)
+                    }
                 }
             }
             Value::Boolean(false) => {}
             _ => panic!("Type error"),
         }
+        None
     }
 
-    fn interpret_while(&self, while_loop: &WhileLoop, env: &mut Environment) {
+    fn interpret_while(&self, while_loop: &WhileLoop, env: &mut Environment) -> Option<Value> {
         loop {
             let condition = self.interpret_expression(&while_loop.condition, env);
             match condition {
                 Value::Boolean(true) => {
                     for statement in &while_loop.body.statements {
-                        self.interpret_statement(statement, env);
+                        if let Some(value) = self.interpret_statement(statement, env) {
+                            return Some(value)
+                        }
                     }
                 }
                 Value::Boolean(false) => break,
                 _ => panic!("Type error"),
             }
         }
+        None
     }
 
-    fn interpret_binding(&self, binding: &Binding, env: &mut Environment) {
+    fn interpret_return(&self, return_stmt: &Return, env: &Environment) -> Option<Value> {
+        let evaluated = self.interpret_expression(&return_stmt.expr, env);
+        Some(evaluated)
+    }
+
+    fn interpret_binding(&self, binding: &Binding, env: &mut Environment) -> Option<Value>{
         let evaluated = self.interpret_expression(&binding.expr, env);
         env.set(binding.name.clone(), evaluated);
+        None
     }
 
-    fn interpret_print(&self, print: &Print, env: &mut Environment) {
+    fn interpret_print(&self, print: &Print, env: &mut Environment) -> Option<Value> {
         let evaluated = self.interpret_expression(&print.expr, env);
         match evaluated {
-            Value::Integer(v) => println!("{v}"),
+            Value::Unit => println!("()"),
             Value::Boolean(v) => println!("{v}"),
+            Value::Integer(v) => println!("{v}"),
         }
+        None
     }
 
     fn interpret_expression(&self, expression: &Expr, env: &Environment) -> Value {
         match expression {
             Expr::Literal(v) => *v,
+            Expr::Call(name) => {
+                let function = self.functions.get(name).unwrap();
+                let mut new_env = Environment::new();
+                let evaluated = self.interpret_function(function, &mut new_env);
+                evaluated
+            }
             Expr::UnaryOp(unary_op) => self.interpret_unary_op(unary_op, env),
             Expr::BinaryOp(binary_op) => self.interpret_binary_op(binary_op, env),
             Expr::Name(name) => {

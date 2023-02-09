@@ -20,6 +20,7 @@ pub struct Function {
 pub enum Statement {
     If(IfStmt),
     While(WhileLoop),
+    Return(Return),
     Binding(Binding),
     Print(Print),
 }
@@ -42,6 +43,11 @@ pub struct Block {
 }
 
 #[derive(Debug)]
+pub struct Return {
+    pub expr: Expr,
+}
+
+#[derive(Debug)]
 pub struct Binding {
     pub name: String,
     pub expr: Expr,
@@ -51,10 +57,12 @@ pub struct Binding {
 pub struct Print {
     pub expr: Expr,
 }
+
 #[derive(Debug)]
 pub enum Expr {
     Literal(Value),
     Name(String),
+    Call(String),
 
     UnaryOp(UnaryOp),
     BinaryOp(BinaryOp),

@@ -6,6 +6,7 @@ pub enum Token {
     Function,
     If,
     While,
+    Return,
     Let,
     Print,
 

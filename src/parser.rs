@@ -2,7 +2,7 @@ use std::{iter::Peekable, slice::Iter};
 
 use crate::ast::{
     BinaryOp, BinaryOpType, Binding, Block, Expr, Function, Global, IfStmt, Print, Program,
-    Statement, UnaryOp, UnaryOpType, WhileLoop,
+    Statement, UnaryOp, UnaryOpType, WhileLoop, Return,
 };
 use crate::token::Token;
 use crate::value::Value;
@@ -19,18 +19,22 @@ impl<'a> Parser<'a> {
     }
 
     pub fn parse(&mut self) -> Program {
-        let function = Global::Function(self.parse_function());
-        let globals = vec![function];
+        let mut globals = Vec::new();
+        while !self.has_ended() {
+            let function = self.parse_function();
+            globals.push(function);
+        }
         Program { globals }
     }
 
-    fn parse_function(&mut self) -> Function {
+    fn parse_function(&mut self) -> Global {
         self.advance();
         let name = self.parse_name();
         self.advance_specific(Token::LParen);
         self.advance_specific(Token::RParen);
         let block = self.parse_block();
-        Function { name, block }
+        let function = Function { name, block };
+        Global::Function(function)
     }
 
     fn parse_block(&mut self) -> Block {
@@ -48,6 +52,7 @@ impl<'a> Parser<'a> {
         match self.peek() {
             Token::If => self.parse_if(),
             Token::While => self.parse_while(),
+            Token::Return => self.parse_return(),
             Token::Let => self.parse_let(),
             Token::Print => self.parse_print(),
             other => panic!("Error while trying to parse statement: {other:?}"),
@@ -68,6 +73,14 @@ impl<'a> Parser<'a> {
         let body = self.parse_block();
         let while_loop = WhileLoop { condition, body };
         Statement::While(while_loop)
+    }
+
+    fn parse_return(&mut self) -> Statement {
+        self.advance_specific(Token::Return);
+        let expr = self.parse_expression();
+        self.advance_specific(Token::Semicolon);
+        let return_ = Return { expr };
+        Statement::Return(return_)
     }
 
     fn parse_let(&mut self) -> Statement {
@@ -211,9 +224,27 @@ impl<'a> Parser<'a> {
                 Expr::UnaryOp(negate)
             }
             Token::Integer(integer) => Expr::Literal(Value::Integer(*integer)),
-            Token::Name(name) => Expr::Name(name.to_string()),
+            Token::Name(name) => {
+                let n = name.to_string();
+                self.parse_name_or_function(n)
+            }
             other => panic!("Error while trying to parse expression: {other:?}"),
         }
+    }
+
+    fn parse_name_or_function(&mut self, name: String) -> Expr {
+        match self.peek() {
+            Token::LParen => {
+                self.advance_specific(Token::LParen);
+                self.advance_specific(Token::RParen);
+                Expr::Call(name)
+            }
+            _ => Expr::Name(name),
+        }
+    }
+
+    fn has_ended(&mut self) -> bool {
+        matches!(self.tokens.peek(), None) 
     }
 
     fn peek(&mut self) -> &Token {

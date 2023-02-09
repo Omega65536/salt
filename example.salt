@@ -1,10 +1,9 @@
 fn main() {
-    let i = 120;
-    let j = 2;
-    while j < i {
-        if i % j == 0 {
-            print(j);
-        }
-        let j = j + 1;
-    }
+    let a = f() + f();
+    print(a);
 }
+
+fn f() {
+    return 2;
+}
+
