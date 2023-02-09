@@ -1,8 +1,8 @@
 use std::{iter::Peekable, slice::Iter};
 
 use crate::ast::{
-    BinaryOp, BinaryOpType, Binding, Block, Expr, Function, Global, IfStmt, Print, Program,
-    Statement, UnaryOp, UnaryOpType, WhileLoop, Return, Call,
+    BinaryOp, BinaryOpType, Binding, Block, Call, Expr, Function, Global, IfStmt, Print, Program,
+    Return, Statement, UnaryOp, UnaryOpType, WhileLoop,
 };
 use crate::token::Token;
 use crate::value::Value;
@@ -32,7 +32,11 @@ impl<'a> Parser<'a> {
         let name = self.parse_name();
         let parameters = self.parse_parameters();
         let block = self.parse_block();
-        let function = Function { name, parameters, block };
+        let function = Function {
+            name,
+            parameters,
+            block,
+        };
         Global::Function(function)
     }
 
@@ -41,7 +45,7 @@ impl<'a> Parser<'a> {
         let mut parameters = Vec::new();
         if self.peek() == &Token::RParen {
             self.advance();
-            return parameters
+            return parameters;
         }
         let first_parameter = self.parse_name();
         parameters.push(first_parameter);
@@ -264,13 +268,13 @@ impl<'a> Parser<'a> {
             _ => Expr::Name(name),
         }
     }
-    
+
     fn parse_arguments(&mut self) -> Vec<Expr> {
         self.advance_specific(Token::LParen);
         let mut arguments = Vec::new();
         if self.peek() == &Token::RParen {
             self.advance();
-            return arguments
+            return arguments;
         }
         let first_argument = self.parse_expression();
         arguments.push(first_argument);
@@ -287,7 +291,7 @@ impl<'a> Parser<'a> {
     }
 
     fn has_ended(&mut self) -> bool {
-        matches!(self.tokens.peek(), None) 
+        matches!(self.tokens.peek(), None)
     }
 
     fn peek(&mut self) -> &Token {

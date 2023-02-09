@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use crate::ast::{
-    BinaryOp, BinaryOpType, Binding, Expr, Function, Global, IfStmt, Print, Program, Statement,
-    UnaryOp, UnaryOpType, WhileLoop, Return,
+    BinaryOp, BinaryOpType, Binding, Expr, Function, Global, IfStmt, Print, Program, Return,
+    Statement, UnaryOp, UnaryOpType, WhileLoop,
 };
 use crate::environment::Environment;
 use crate::value::Value;
@@ -35,7 +35,12 @@ impl Interpeter {
         self.interpret_function(main_function, main_arguments, &mut env);
     }
 
-    fn interpret_function(&self, function: &Function, arguments: Vec<Value>, env: &mut Environment)  -> Value {
+    fn interpret_function(
+        &self,
+        function: &Function,
+        arguments: Vec<Value>,
+        env: &mut Environment,
+    ) -> Value {
         //println!("<Interpreting {:?} with {:?} = {:?}>", function.name, function.parameters, arguments);
         if function.parameters.len() != arguments.len() {
             panic!("Invalid arity!");
@@ -45,7 +50,7 @@ impl Interpeter {
         }
         for statement in &function.block.statements {
             if let Some(value) = self.interpret_statement(statement, env) {
-                return value
+                return value;
             }
         }
         Value::Unit
@@ -67,7 +72,7 @@ impl Interpeter {
             Value::Boolean(true) => {
                 for statement in &if_stmt.body.statements {
                     if let Some(value) = self.interpret_statement(statement, env) {
-                        return Some(value)
+                        return Some(value);
                     }
                 }
             }
@@ -84,7 +89,7 @@ impl Interpeter {
                 Value::Boolean(true) => {
                     for statement in &while_loop.body.statements {
                         if let Some(value) = self.interpret_statement(statement, env) {
-                            return Some(value)
+                            return Some(value);
                         }
                     }
                 }
@@ -100,7 +105,7 @@ impl Interpeter {
         Some(evaluated)
     }
 
-    fn interpret_binding(&self, binding: &Binding, env: &mut Environment) -> Option<Value>{
+    fn interpret_binding(&self, binding: &Binding, env: &mut Environment) -> Option<Value> {
         let evaluated = self.interpret_expression(&binding.expr, env);
         env.set(binding.name.clone(), evaluated);
         None
@@ -122,9 +127,11 @@ impl Interpeter {
             Expr::Call(call) => {
                 let function = self.functions.get(&call.name).expect("No such function");
                 let mut new_env = Environment::new();
-                let arguments_evaluated = call.arguments.iter().map(
-                    |expr| self.interpret_expression(expr, env)
-                ).collect();
+                let arguments_evaluated = call
+                    .arguments
+                    .iter()
+                    .map(|expr| self.interpret_expression(expr, env))
+                    .collect();
                 self.interpret_function(function, arguments_evaluated, &mut new_env)
             }
             Expr::UnaryOp(unary_op) => self.interpret_unary_op(unary_op, env),
