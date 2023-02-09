@@ -5,47 +5,52 @@ use crate::ast::{
     UnaryOp, UnaryOpType, WhileLoop,
 };
 use crate::value::Value;
+use crate::environment::Environment;
 
 pub struct Interpeter {
-    environment: HashMap<String, Value>,
+    functions: HashMap<String, Function>,
 }
 
 impl Interpeter {
     pub fn new() -> Self {
         Self {
-            environment: HashMap::new(),
+            functions: HashMap::new(),
         }
     }
 
     pub fn interpret(&mut self, program: Program) {
-        let main_function = &program.globals[0];
-        match main_function {
-            Global::Function(function) => self.interpret_function(function),
+        for global in program.globals {
+            match global {
+                Global::Function(function) => self.functions.insert(function.name.clone(), function),
+            };
         }
+        let opt_main_function = self.functions.get("main").expect("Could not find main function");
+        let mut env = Environment::new();
+        self.interpret_function(&opt_main_function, &mut env);
     }
 
-    fn interpret_function(&mut self, function: &Function) {
+    fn interpret_function(&self, function: &Function, env: &mut Environment) {
         println!("<Interpreting {:?}>", function.name);
         for statement in &function.block.statements {
-            self.interpret_statement(statement);
+            self.interpret_statement(statement, env);
         }
     }
 
-    fn interpret_statement(&mut self, statement: &Statement) {
+    fn interpret_statement(&self, statement: &Statement, env: &mut Environment) {
         match statement {
-            Statement::If(if_stmt) => self.interpret_if(if_stmt),
-            Statement::While(while_loop) => self.interpret_while(while_loop),
-            Statement::Binding(binding) => self.interpret_binding(binding),
-            Statement::Print(print) => self.interpret_print(print),
+            Statement::If(if_stmt) => self.interpret_if(if_stmt, env),
+            Statement::While(while_loop) => self.interpret_while(while_loop, env),
+            Statement::Binding(binding) => self.interpret_binding(binding, env),
+            Statement::Print(print) => self.interpret_print(print, env),
         }
     }
 
-    fn interpret_if(&mut self, if_stmt: &IfStmt) {
-        let condition = self.interpret_expression(&if_stmt.condition);
+    fn interpret_if(&self, if_stmt: &IfStmt, env: &mut Environment) {
+        let condition = self.interpret_expression(&if_stmt.condition, env);
         match condition {
             Value::Boolean(true) => {
                 for statement in &if_stmt.body.statements {
-                    self.interpret_statement(statement);
+                    self.interpret_statement(statement, env);
                 }
             }
             Value::Boolean(false) => {}
@@ -53,13 +58,13 @@ impl Interpeter {
         }
     }
 
-    fn interpret_while(&mut self, while_loop: &WhileLoop) {
+    fn interpret_while(&self, while_loop: &WhileLoop, env: &mut Environment) {
         loop {
-            let condition = self.interpret_expression(&while_loop.condition);
+            let condition = self.interpret_expression(&while_loop.condition, env);
             match condition {
                 Value::Boolean(true) => {
                     for statement in &while_loop.body.statements {
-                        self.interpret_statement(statement);
+                        self.interpret_statement(statement, env);
                     }
                 }
                 Value::Boolean(false) => break,
@@ -68,33 +73,33 @@ impl Interpeter {
         }
     }
 
-    fn interpret_binding(&mut self, binding: &Binding) {
-        let evaluated = self.interpret_expression(&binding.expr);
-        self.environment.insert(binding.name.clone(), evaluated);
+    fn interpret_binding(&self, binding: &Binding, env: &mut Environment) {
+        let evaluated = self.interpret_expression(&binding.expr, env);
+        env.set(binding.name.clone(), evaluated);
     }
 
-    fn interpret_print(&self, print: &Print) {
-        let evaluated = self.interpret_expression(&print.expr);
+    fn interpret_print(&self, print: &Print, env: &mut Environment) {
+        let evaluated = self.interpret_expression(&print.expr, env);
         match evaluated {
             Value::Integer(v) => println!("{v}"),
             Value::Boolean(v) => println!("{v}"),
         }
     }
 
-    fn interpret_expression(&self, expression: &Expr) -> Value {
+    fn interpret_expression(&self, expression: &Expr, env: &Environment) -> Value {
         match expression {
             Expr::Literal(v) => *v,
-            Expr::UnaryOp(unary_op) => self.interpret_unary_op(unary_op),
-            Expr::BinaryOp(binary_op) => self.interpret_binary_op(binary_op),
+            Expr::UnaryOp(unary_op) => self.interpret_unary_op(unary_op, env),
+            Expr::BinaryOp(binary_op) => self.interpret_binary_op(binary_op, env),
             Expr::Name(name) => {
-                let evaluated = self.environment.get(name).unwrap();
+                let evaluated = env.get(name).unwrap();
                 *evaluated
             }
         }
     }
 
-    fn interpret_unary_op(&self, op: &UnaryOp) -> Value {
-        let expr_evaluated = self.interpret_expression(&op.expr);
+    fn interpret_unary_op(&self, op: &UnaryOp, env: &Environment) -> Value {
+        let expr_evaluated = self.interpret_expression(&op.expr, env);
         match op.op_type {
             UnaryOpType::Negate => match expr_evaluated {
                 Value::Integer(v) => Value::Integer(-v),
@@ -103,9 +108,9 @@ impl Interpeter {
         }
     }
 
-    fn interpret_binary_op(&self, op: &BinaryOp) -> Value {
-        let left_evaluated = self.interpret_expression(&op.left);
-        let right_evaluated = self.interpret_expression(&op.right);
+    fn interpret_binary_op(&self, op: &BinaryOp, env: &Environment) -> Value {
+        let left_evaluated = self.interpret_expression(&op.left, env);
+        let right_evaluated = self.interpret_expression(&op.right, env);
         match op.op_type {
             BinaryOpType::Addition => match (left_evaluated, right_evaluated) {
                 (Value::Integer(l), Value::Integer(r)) => Value::Integer(l + r),

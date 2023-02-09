@@ -4,6 +4,7 @@ mod lexer;
 mod parser;
 mod token;
 mod value;
+mod environment;
 
 use crate::interpreter::Interpeter;
 use crate::lexer::Lexer;
