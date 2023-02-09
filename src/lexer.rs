@@ -100,7 +100,7 @@ impl<'a> Lexer<'a> {
     fn next_name_or_keyword(&mut self) -> Token {
         let mut name = String::new();
         while let Some(ch) = self.chars.peek() {
-            if !ch.is_ascii_alphabetic() {
+            if !ch.is_ascii_alphabetic() && *ch != '_' {
                 break;
             }
             name.push(*ch);
