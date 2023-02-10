@@ -2,7 +2,7 @@ use std::{iter::Peekable, slice::Iter};
 
 use crate::ast::{
     BinaryOp, BinaryOpType, Binding, Block, Call, Expr, Function, Global, IfStmt, Print, Program,
-    Return, Statement, UnaryOp, UnaryOpType, WhileLoop, Time,
+    Return, Statement, Time, UnaryOp, UnaryOpType, WhileLoop,
 };
 use crate::token::Token;
 use crate::value::Value;

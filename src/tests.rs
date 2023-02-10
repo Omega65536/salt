@@ -22,21 +22,22 @@ mod interpreter_tests {
     #[test]
     fn math() {
         let salt = Salt::new();
-        let value = salt.run("
+        let value = salt.run(
+            "
         fn main() {
             let result = 4 * 5 + 12 / (10 - 15 % 8);
             return result;
         }
-        ");
+        ",
+        );
         assert_eq!(value, Value::Integer(24));
     }
-
-
 
     #[test]
     fn if_stmt() {
         let salt = Salt::new();
-        let value = salt.run("
+        let value = salt.run(
+            "
         fn main() {
             if 2 >= 3 {
                 return 1;
@@ -48,14 +49,16 @@ mod interpreter_tests {
                 return 3;
             }
         }
-        ");
+        ",
+        );
         assert_eq!(value, Value::Integer(3));
     }
 
     #[test]
     fn while_loop() {
         let salt = Salt::new();
-        let value = salt.run("
+        let value = salt.run(
+            "
         fn main() {
             let i = 1;
             let product = 1;
@@ -65,14 +68,16 @@ mod interpreter_tests {
             }
             return product;
         }
-        ");
+        ",
+        );
         assert_eq!(value, Value::Integer(3628800));
     }
 
     #[test]
     fn functions() {
         let salt = Salt::new();
-        let value = salt.run("
+        let value = salt.run(
+            "
         fn main() {
             return a(1, 2, 3) + b(4, 5) + c(6) + d();
         }
@@ -92,7 +97,8 @@ mod interpreter_tests {
         fn d() {
             return 1;
         }
-        ");
+        ",
+        );
 
         assert_eq!(value, Value::Integer(15));
     }
@@ -100,7 +106,8 @@ mod interpreter_tests {
     #[test]
     fn fib() {
         let salt = Salt::new();
-        let value = salt.run("
+        let value = salt.run(
+            "
         fn main() {
             let result_iter = fib_iter(10);
             print(result_iter);
@@ -129,7 +136,8 @@ mod interpreter_tests {
             }
             return fib_rec(i - 1) + fib_rec(i - 2);
         }
-        ");
+        ",
+        );
         assert_eq!(value, Value::Boolean(true));
     }
 }

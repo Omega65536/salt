@@ -91,8 +91,7 @@ pub struct BinaryOp {
 }
 
 #[derive(Debug)]
-pub struct Time {
-}
+pub struct Time {}
 
 #[derive(Debug)]
 pub enum UnaryOpType {

@@ -1,20 +1,19 @@
 fn main() {
     let start = time();
-    let num_primes = primes_in_range(1000, 1000 + 1000);
+    let result = fibonacci(35);
     let stop = time();
     let delta = stop - start;
     print(delta);
 }
 
-fn add(x, y) {
-    return x + y;
-}
-
-fn fac(x) {
-    if x == 1 {
-    	return 1;
+fn fibonacci(i) {
+    if i == 0 {
+        return 0;
     }
-    return x * fac(x - 1);
+    if i == 1 {
+        return 1;
+    }
+    return fibonacci(i - 1) + fibonacci(i - 2);
 }
 
 fn primes_in_range(from, to) {

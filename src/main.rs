@@ -3,10 +3,10 @@ mod environment;
 mod interpreter;
 mod lexer;
 mod parser;
-mod token;
-mod value;
 mod salt;
 mod tests;
+mod token;
+mod value;
 
 use salt::Salt;
 
@@ -20,4 +20,3 @@ fn main() {
     let salt = Salt::new();
     salt.run(&source);
 }
-

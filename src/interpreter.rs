@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::ast::{
-    BinaryOp, BinaryOpType, Binding, Expr, Function, Global, IfStmt, Print, Program, Return,
-    Statement, UnaryOp, UnaryOpType, WhileLoop, Time,
+    BinaryOp, BinaryOpType, Binding, Block, Expr, Function, Global, IfStmt, Print, Program, Return,
+    Statement, Time, UnaryOp, UnaryOpType, WhileLoop,
 };
 use crate::environment::Environment;
 use crate::value::Value;
@@ -52,12 +52,8 @@ impl Interpeter {
         for (parameter, argument) in function.parameters.iter().zip(arguments) {
             env.set(parameter.to_string(), argument);
         }
-        for statement in &function.block.statements {
-            if let Some(value) = self.interpret_statement(statement, env) {
-                return value;
-            }
-        }
-        Value::Unit
+        self.interpret_block(&function.block, env)
+            .unwrap_or(Value::Unit)
     }
 
     fn interpret_statement(&self, statement: &Statement, env: &mut Environment) -> Option<Value> {
@@ -73,32 +69,31 @@ impl Interpeter {
     fn interpret_if(&self, if_stmt: &IfStmt, env: &mut Environment) -> Option<Value> {
         let condition = self.interpret_expression(&if_stmt.condition, env);
         match condition {
-            Value::Boolean(true) => {
-                for statement in &if_stmt.body.statements {
-                    if let Some(value) = self.interpret_statement(statement, env) {
-                        return Some(value);
-                    }
-                }
-            }
-            Value::Boolean(false) => {}
+            Value::Boolean(true) => (),
+            Value::Boolean(false) => return None,
             _ => panic!("Type error"),
         }
-        None
+        self.interpret_block(&if_stmt.body, env)
     }
 
     fn interpret_while(&self, while_loop: &WhileLoop, env: &mut Environment) -> Option<Value> {
         loop {
             let condition = self.interpret_expression(&while_loop.condition, env);
             match condition {
-                Value::Boolean(true) => {
-                    for statement in &while_loop.body.statements {
-                        if let Some(value) = self.interpret_statement(statement, env) {
-                            return Some(value);
-                        }
-                    }
-                }
-                Value::Boolean(false) => break,
+                Value::Boolean(true) => (),
+                Value::Boolean(false) => return None,
                 _ => panic!("Type error"),
+            }
+            if let Some(value) = self.interpret_block(&while_loop.body, env) {
+                return Some(value);
+            }
+        }
+    }
+
+    fn interpret_block(&self, block: &Block, env: &mut Environment) -> Option<Value> {
+        for statement in &block.statements {
+            if let Some(value) = self.interpret_statement(statement, env) {
+                return Some(value);
             }
         }
         None
@@ -210,7 +205,10 @@ impl Interpeter {
     }
 
     fn interpret_time(&self, _time: &Time, _env: &Environment) -> Value {
-        let millis = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
+        let millis = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis();
         Value::Integer(millis as i64)
     }
 }
