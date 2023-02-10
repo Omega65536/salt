@@ -41,7 +41,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_parameters(&mut self) -> Vec<String> {
-        self.advance_specific(Token::LParen);
+        self.advance_specific(&Token::LParen);
         let mut parameters = Vec::new();
         if self.peek() == &Token::RParen {
             self.advance();
@@ -62,13 +62,13 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_block(&mut self) -> Block {
-        self.advance_specific(Token::LCurly);
+        self.advance_specific(&Token::LCurly);
         let mut statements = Vec::new();
         while self.peek() != &Token::RCurly {
             let statement = self.parse_statement();
             statements.push(statement);
         }
-        self.advance_specific(Token::RCurly);
+        self.advance_specific(&Token::RCurly);
         Block { statements }
     }
 
@@ -84,7 +84,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_if(&mut self) -> Statement {
-        self.advance_specific(Token::If);
+        self.advance_specific(&Token::If);
         let condition = self.parse_expression();
         let body = self.parse_block();
         let if_stmt = IfStmt { condition, body };
@@ -92,7 +92,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_while(&mut self) -> Statement {
-        self.advance_specific(Token::While);
+        self.advance_specific(&Token::While);
         let condition = self.parse_expression();
         let body = self.parse_block();
         let while_loop = WhileLoop { condition, body };
@@ -100,29 +100,29 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_return(&mut self) -> Statement {
-        self.advance_specific(Token::Return);
+        self.advance_specific(&Token::Return);
         let expr = self.parse_expression();
-        self.advance_specific(Token::Semicolon);
+        self.advance_specific(&Token::Semicolon);
         let return_ = Return { expr };
         Statement::Return(return_)
     }
 
     fn parse_let(&mut self) -> Statement {
-        self.advance_specific(Token::Let);
+        self.advance_specific(&Token::Let);
         let name = self.parse_name();
-        self.advance_specific(Token::Equal);
+        self.advance_specific(&Token::Equal);
         let expr = self.parse_expression();
-        self.advance_specific(Token::Semicolon);
+        self.advance_specific(&Token::Semicolon);
         let binding = Binding { name, expr };
         Statement::Binding(binding)
     }
 
     fn parse_print(&mut self) -> Statement {
-        self.advance_specific(Token::Print);
-        self.advance_specific(Token::LParen);
+        self.advance_specific(&Token::Print);
+        self.advance_specific(&Token::LParen);
         let expr = self.parse_expression();
-        self.advance_specific(Token::RParen);
-        self.advance_specific(Token::Semicolon);
+        self.advance_specific(&Token::RParen);
+        self.advance_specific(&Token::Semicolon);
         let print = Print { expr };
         Statement::Print(print)
     }
@@ -140,95 +140,61 @@ impl<'a> Parser<'a> {
 
     fn parse_comparison(&mut self) -> Expr {
         let left = self.parse_addition_and_subtraction();
-        let opt_comparison = match self.peek() {
-            Token::DoubleEqual => Some(BinaryOpType::EqualTo),
-            Token::NotEqual => Some(BinaryOpType::NotEqualTo),
-            Token::Less => Some(BinaryOpType::LessThan),
-            Token::LessEqual => Some(BinaryOpType::LessThanOrEqualTo),
-            Token::Greater => Some(BinaryOpType::GreaterThan),
-            Token::GreaterEqual => Some(BinaryOpType::GreaterThanOrEqualTo),
-            _ => None,
+        let comparison_type = match self.peek() {
+            Token::DoubleEqual => BinaryOpType::EqualTo,
+            Token::NotEqual => BinaryOpType::NotEqualTo,
+            Token::Less => BinaryOpType::LessThan,
+            Token::LessEqual => BinaryOpType::LessThanOrEqualTo,
+            Token::Greater => BinaryOpType::GreaterThan,
+            Token::GreaterEqual => BinaryOpType::GreaterThanOrEqualTo,
+            _ => return left,
         };
-        match opt_comparison {
-            Some(comparison) => {
-                self.advance();
-                let right = self.parse_addition_and_subtraction();
-                let op = BinaryOp {
-                    op_type: comparison,
-                    left: Box::new(left),
-                    right: Box::new(right),
-                };
-                Expr::BinaryOp(op)
-            }
-            None => left,
-        }
+        self.advance();
+        let right = self.parse_addition_and_subtraction();
+        let op = BinaryOp {
+            op_type: comparison_type,
+            left: Box::new(left),
+            right: Box::new(right),
+        };
+        Expr::BinaryOp(op)
     }
 
     fn parse_addition_and_subtraction(&mut self) -> Expr {
         let mut current = self.parse_multiplication_and_division();
         loop {
-            match self.peek() {
-                Token::Plus => {
-                    self.advance();
-                    let right = self.parse_multiplication_and_division();
-                    let addition = BinaryOp {
-                        op_type: BinaryOpType::Addition,
-                        left: Box::new(current),
-                        right: Box::new(right),
-                    };
-                    current = Expr::BinaryOp(addition);
-                }
-                Token::Minus => {
-                    self.advance();
-                    let right = self.parse_multiplication_and_division();
-                    let subtraction = BinaryOp {
-                        op_type: BinaryOpType::Subtraction,
-                        left: Box::new(current),
-                        right: Box::new(right),
-                    };
-                    current = Expr::BinaryOp(subtraction);
-                }
+            let expr_type = match self.peek() {
+                Token::Plus => BinaryOpType::Addition,
+                Token::Minus => BinaryOpType::Subtraction,
                 _ => return current,
-            }
+            };
+            self.advance();
+            let right = self.parse_multiplication_and_division();
+            let expr = BinaryOp {
+                op_type: expr_type,
+                left: Box::new(current),
+                right: Box::new(right),
+            };
+            current = Expr::BinaryOp(expr);
         }
     }
 
     fn parse_multiplication_and_division(&mut self) -> Expr {
         let mut current = self.parse_unary();
         loop {
-            match self.peek() {
-                Token::Star => {
-                    self.advance();
-                    let right = self.parse_unary();
-                    let multiplication = BinaryOp {
-                        op_type: BinaryOpType::Multiplication,
-                        left: Box::new(current),
-                        right: Box::new(right),
-                    };
-                    current = Expr::BinaryOp(multiplication);
-                }
-                Token::Slash => {
-                    self.advance();
-                    let right = self.parse_unary();
-                    let division = BinaryOp {
-                        op_type: BinaryOpType::Division,
-                        left: Box::new(current),
-                        right: Box::new(right),
-                    };
-                    current = Expr::BinaryOp(division);
-                }
-                Token::Percent => {
-                    self.advance();
-                    let right = self.parse_unary();
-                    let modulo = BinaryOp {
-                        op_type: BinaryOpType::Modulo,
-                        left: Box::new(current),
-                        right: Box::new(right),
-                    };
-                    current = Expr::BinaryOp(modulo);
-                }
+            let expr_type = match self.peek() {
+                Token::Star => BinaryOpType::Multiplication,
+                Token::Slash => BinaryOpType::Division,
+                Token::Percent => BinaryOpType::Modulo,
                 _ => return current,
-            }
+            };
+            self.advance();
+            let right = self.parse_unary();
+            let expr = BinaryOp {
+                op_type: expr_type,
+                left: Box::new(current),
+                right: Box::new(right),
+            };
+            current = Expr::BinaryOp(expr);
         }
     }
 
@@ -236,7 +202,7 @@ impl<'a> Parser<'a> {
         match self.advance() {
             Token::LParen => {
                 let expression = self.parse_expression();
-                self.advance_specific(Token::RParen);
+                self.advance_specific(&Token::RParen);
                 expression
             }
             Token::Minus => {
@@ -253,8 +219,8 @@ impl<'a> Parser<'a> {
                 self.parse_name_or_function(n)
             }
             Token::Time => {
-                self.advance_specific(Token::LParen);
-                self.advance_specific(Token::RParen);
+                self.advance_specific(&Token::LParen);
+                self.advance_specific(&Token::RParen);
                 let time = Time {};
                 Expr::Time(time)
             }
@@ -276,7 +242,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_arguments(&mut self) -> Vec<Expr> {
-        self.advance_specific(Token::LParen);
+        self.advance_specific(&Token::LParen);
         let mut arguments = Vec::new();
         if self.peek() == &Token::RParen {
             self.advance();
@@ -314,9 +280,9 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn advance_specific(&mut self, expected: Token) {
+    fn advance_specific(&mut self, expected: &Token) {
         match self.tokens.next() {
-            Some(token) if token == &expected => (),
+            Some(token) if token == expected => (),
             Some(other) => panic!("Expected {expected:?} but found {other:?}"),
             None => panic!("Unexpected end of file (expected {expected:?}"),
         }
