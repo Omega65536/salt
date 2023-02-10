@@ -1,6 +1,6 @@
 fn main() {
     let start = time();
-    let num_primes = primes_in_range(1000 * 1000, 1000 * 1000 + 1000);
+    let num_primes = primes_in_range(1000, 1000 + 1000);
     let stop = time();
     let delta = stop - start;
     print(delta);
