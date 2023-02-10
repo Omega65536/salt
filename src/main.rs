@@ -6,6 +6,7 @@ mod parser;
 mod token;
 mod value;
 mod salt;
+mod tests;
 
 use salt::Salt;
 
@@ -17,6 +18,6 @@ fn main() {
     let source = fs::read_to_string(file_name).expect("Unable to read file!");
 
     let salt = Salt::new();
-    salt.run(source);
+    salt.run(&source);
 }
 

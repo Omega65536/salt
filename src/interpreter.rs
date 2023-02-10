@@ -19,7 +19,17 @@ impl Interpeter {
         }
     }
 
-    pub fn interpret(&mut self, program: Program) {
+    pub fn call_function(&mut self, function_name: &str) -> Value {
+        let main_function = self
+            .functions
+            .get(function_name)
+            .expect("Could not find function");
+        let mut env = Environment::new();
+        let main_arguments = Vec::new();
+        self.interpret_function(main_function, main_arguments, &mut env)
+    }
+
+    pub fn load(&mut self, program: Program) {
         for global in program.globals {
             match global {
                 Global::Function(function) => {
@@ -27,13 +37,6 @@ impl Interpeter {
                 }
             };
         }
-        let main_function = self
-            .functions
-            .get("main")
-            .expect("Could not find main function");
-        let mut env = Environment::new();
-        let main_arguments = Vec::new();
-        self.interpret_function(main_function, main_arguments, &mut env);
     }
 
     fn interpret_function(
@@ -206,7 +209,7 @@ impl Interpeter {
         }
     }
 
-    fn interpret_time(&self, time: &Time, env: &Environment) -> Value {
+    fn interpret_time(&self, _time: &Time, _env: &Environment) -> Value {
         let millis = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
         Value::Integer(millis as i64)
     }
