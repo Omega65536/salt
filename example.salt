@@ -1,11 +1,9 @@
 fn main() {
-    let i = 1000 * 1000;
-    while i < 1000 * 1000 + 1000 {
-        if is_prime(i) {
-	    print(i);
-	}
-	let i = i + 1;
-    }
+    let start = time();
+    let num_primes = primes_in_range(1000 * 1000, 1000 * 1000 + 1000);
+    let stop = time();
+    let delta = stop - start;
+    print(delta);
 }
 
 fn add(x, y) {
@@ -18,6 +16,20 @@ fn fac(x) {
     }
     return x * fac(x - 1);
 }
+
+fn primes_in_range(from, to) {
+    let num_primes = 0;
+    let i = from;
+    while i < to {
+        if is_prime(i) {
+            let num_primes = num_primes + 1;
+	    print(i);
+	}
+	let i = i + 1;
+    }
+    return num_primes;
+}
+    
 
 fn is_prime(i) {
     let j = 2;

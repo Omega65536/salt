@@ -1,8 +1,9 @@
 use std::collections::HashMap;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::ast::{
     BinaryOp, BinaryOpType, Binding, Expr, Function, Global, IfStmt, Print, Program, Return,
-    Statement, UnaryOp, UnaryOpType, WhileLoop,
+    Statement, UnaryOp, UnaryOpType, WhileLoop, Time,
 };
 use crate::environment::Environment;
 use crate::value::Value;
@@ -140,6 +141,7 @@ impl Interpeter {
                 let evaluated = env.get(name).expect("No such variable");
                 *evaluated
             }
+            Expr::Time(time) => self.interpret_time(time, env),
         }
     }
 
@@ -202,5 +204,10 @@ impl Interpeter {
                 _ => panic!("Type error"),
             },
         }
+    }
+
+    fn interpret_time(&self, time: &Time, env: &Environment) -> Value {
+        let millis = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
+        Value::Integer(millis as i64)
     }
 }

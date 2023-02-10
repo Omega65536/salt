@@ -2,7 +2,7 @@ use std::{iter::Peekable, slice::Iter};
 
 use crate::ast::{
     BinaryOp, BinaryOpType, Binding, Block, Call, Expr, Function, Global, IfStmt, Print, Program,
-    Return, Statement, UnaryOp, UnaryOpType, WhileLoop,
+    Return, Statement, UnaryOp, UnaryOpType, WhileLoop, Time,
 };
 use crate::token::Token;
 use crate::value::Value;
@@ -251,6 +251,12 @@ impl<'a> Parser<'a> {
             Token::Name(name) => {
                 let n = name.to_string();
                 self.parse_name_or_function(n)
+            }
+            Token::Time => {
+                self.advance_specific(Token::LParen);
+                self.advance_specific(Token::RParen);
+                let time = Time {};
+                Expr::Time(time)
             }
             Token::True => Expr::Literal(Value::Boolean(true)),
             Token::False => Expr::Literal(Value::Boolean(false)),

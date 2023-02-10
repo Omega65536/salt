@@ -9,6 +9,7 @@ pub enum Token {
     Return,
     Let,
     Print,
+    Time,
     True,
     False,
 

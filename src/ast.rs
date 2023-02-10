@@ -67,6 +67,8 @@ pub enum Expr {
 
     UnaryOp(UnaryOp),
     BinaryOp(BinaryOp),
+
+    Time(Time),
 }
 
 #[derive(Debug)]
@@ -86,6 +88,10 @@ pub struct BinaryOp {
     pub op_type: BinaryOpType,
     pub left: Box<Expr>,
     pub right: Box<Expr>,
+}
+
+#[derive(Debug)]
+pub struct Time {
 }
 
 #[derive(Debug)]
