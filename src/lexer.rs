@@ -28,7 +28,7 @@ impl<'a> Lexer<'a> {
     fn next_token(&mut self) -> Option<Token> {
         match self.chars.peek() {
             Some(ch) => match ch {
-                ' ' | '\n' | '\t' => {
+                ch if ch.is_whitespace() => {
                     self.chars.next();
                     None
                 }

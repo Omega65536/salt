@@ -49,7 +49,6 @@ impl<'a> Parser<'a> {
         }
         let first_parameter = self.parse_name();
         parameters.push(first_parameter);
-
         loop {
             match self.advance() {
                 Token::RParen => return parameters,
@@ -103,8 +102,8 @@ impl<'a> Parser<'a> {
         self.advance_specific(&Token::Return);
         let expr = self.parse_expression();
         self.advance_specific(&Token::Semicolon);
-        let return_ = Return { expr };
-        Statement::Return(return_)
+        let return_stmt = Return { expr };
+        Statement::Return(return_stmt)
     }
 
     fn parse_let(&mut self) -> Statement {
