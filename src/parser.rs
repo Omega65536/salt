@@ -78,7 +78,11 @@ impl<'a> Parser<'a> {
             Token::Return => self.parse_return(),
             Token::Let => self.parse_let(),
             Token::Print => self.parse_print(),
-            other => panic!("Error while trying to parse statement: {other:?}"),
+            _ => {
+                let expr = self.parse_expression();
+                self.advance_specific(&Token::Semicolon);
+                Statement::Expr(expr)
+            },
         }
     }
 

@@ -61,6 +61,10 @@ impl Interpeter {
             Statement::If(if_stmt) => self.interpret_if(if_stmt, env),
             Statement::While(while_loop) => self.interpret_while(while_loop, env),
             Statement::Return(return_stmt) => self.interpret_return(return_stmt, env),
+            Statement::Expr(expr) => {
+                self.interpret_expression(expr, env);
+                None
+            },
             Statement::Binding(binding) => self.interpret_binding(binding, env),
             Statement::Print(print) => self.interpret_print(print, env),
         }

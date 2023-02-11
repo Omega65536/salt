@@ -1,6 +1,6 @@
 fn main() {
     let start = time();
-    let result = fibonacci(35);
+    primes_in_range(1000, 2000);
     let stop = time();
     let delta = stop - start;
     print(delta);

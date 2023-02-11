@@ -22,6 +22,7 @@ pub enum Statement {
     If(IfStmt),
     While(WhileLoop),
     Return(Return),
+    Expr(Expr),
     Binding(Binding),
     Print(Print),
 }
