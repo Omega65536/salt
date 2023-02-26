@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::ast::{
-    BinaryOp, BinaryOpType, Binding, Block, Expr, Function, Global, IfStmt, Print, Program, Return,
+    BinaryOp, BinaryOpType, Assignment, Block, Expr, Function, Global, IfStmt, Print, Program, Return,
     Statement, Time, UnaryOp, UnaryOpType, WhileLoop,
 };
 use crate::environment::Environment;
@@ -65,7 +65,7 @@ impl Interpeter {
                 self.interpret_expression(expr, env);
                 None
             },
-            Statement::Binding(binding) => self.interpret_binding(binding, env),
+            Statement::Assignment(assignment) => self.interpret_assignment(assignment, env),
             Statement::Print(print) => self.interpret_print(print, env),
         }
     }
@@ -108,9 +108,9 @@ impl Interpeter {
         Some(evaluated)
     }
 
-    fn interpret_binding(&self, binding: &Binding, env: &mut Environment) -> Option<Value> {
-        let evaluated = self.interpret_expression(&binding.expr, env);
-        env.set(binding.name.clone(), evaluated);
+    fn interpret_assignment(&self, assignment: &Assignment, env: &mut Environment) -> Option<Value> {
+        let evaluated = self.interpret_expression(&assignment.expr, env);
+        env.set(assignment.name.clone(), evaluated);
         None
     }
 

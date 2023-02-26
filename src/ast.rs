@@ -23,7 +23,7 @@ pub enum Statement {
     While(WhileLoop),
     Return(Return),
     Expr(Expr),
-    Binding(Binding),
+    Assignment(Assignment),
     Print(Print),
 }
 
@@ -50,7 +50,7 @@ pub struct Return {
 }
 
 #[derive(Debug)]
-pub struct Binding {
+pub struct Assignment {
     pub name: String,
     pub expr: Expr,
 }

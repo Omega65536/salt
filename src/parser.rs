@@ -1,7 +1,7 @@
 use std::{iter::Peekable, slice::Iter};
 
 use crate::ast::{
-    BinaryOp, BinaryOpType, Binding, Block, Call, Expr, Function, Global, IfStmt, Print, Program,
+    BinaryOp, BinaryOpType, Assignment, Block, Call, Expr, Function, Global, IfStmt, Print, Program,
     Return, Statement, Time, UnaryOp, UnaryOpType, WhileLoop,
 };
 use crate::token::Token;
@@ -116,8 +116,8 @@ impl<'a> Parser<'a> {
         self.advance_specific(&Token::Equal);
         let expr = self.parse_expression();
         self.advance_specific(&Token::Semicolon);
-        let binding = Binding { name, expr };
-        Statement::Binding(binding)
+        let assignment = Assignment { name, expr };
+        Statement::Assignment(assignment)
     }
 
     fn parse_print(&mut self) -> Statement {
