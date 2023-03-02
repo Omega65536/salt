@@ -25,7 +25,7 @@ mod interpreter_tests {
         let value = salt.run(
             "
         fn main() {
-            let result = 4 * 5 + 12 / (10 - 15 % 8);
+            result = 4 * 5 + 12 / (10 - 15 % 8);
             return result;
         }
         ",
@@ -60,11 +60,11 @@ mod interpreter_tests {
         let value = salt.run(
             "
         fn main() {
-            let i = 1;
-            let product = 1;
+            i = 1;
+            product = 1;
             while i <= 10 {
-                let product = product * i;
-                let i = i + 1;
+                product = product * i;
+                i = i + 1;
             }
             return product;
         }
@@ -109,20 +109,20 @@ mod interpreter_tests {
         let value = salt.run(
             "
         fn main() {
-            let result_iter = fib_iter(10);
+            result_iter = fib_iter(10);
             print(result_iter);
             return fib_iter(10) == fib_rec(10);
         }
 
         fn fib_iter(i) {
-            let a = 0;
-            let b = 1;
-            let j = 0;
+            a = 0;
+            b = 1;
+            j = 0;
             while j < i {
-                let t = b;
-                let b = a + b;
-                let a = t;
-                let j = j + 1;
+                t = b;
+                b = a + b;
+                a = t;
+                j = j + 1;
             }
             return a;
         }

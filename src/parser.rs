@@ -76,12 +76,25 @@ impl<'a> Parser<'a> {
             Token::If => self.parse_if(),
             Token::While => self.parse_while(),
             Token::Return => self.parse_return(),
-            Token::Let => self.parse_let(),
             Token::Print => self.parse_print(),
             _ => {
                 let expr = self.parse_expression();
-                self.advance_specific(&Token::Semicolon);
-                Statement::Expr(expr)
+                match self.advance() {
+                    Token::Semicolon => {
+                        Statement::Expr(expr)
+                    }
+                    Token::Equal => {
+                        let name = match expr {
+                            Expr::Name(name) => name,
+                            _ => panic!("Cannot assign to {expr:?}")
+                        };
+                        let rhs = self.parse_expression();
+                        self.advance_specific(&Token::Semicolon);
+                        let assignment = Assignment { name, expr: rhs };
+                        Statement::Assignment(assignment)
+                    }
+                    _ => panic!("Error while trying to parse statement"),
+                }
             },
         }
     }
@@ -108,16 +121,6 @@ impl<'a> Parser<'a> {
         self.advance_specific(&Token::Semicolon);
         let return_stmt = Return { expr };
         Statement::Return(return_stmt)
-    }
-
-    fn parse_let(&mut self) -> Statement {
-        self.advance_specific(&Token::Let);
-        let name = self.parse_name();
-        self.advance_specific(&Token::Equal);
-        let expr = self.parse_expression();
-        self.advance_specific(&Token::Semicolon);
-        let assignment = Assignment { name, expr };
-        Statement::Assignment(assignment)
     }
 
     fn parse_print(&mut self) -> Statement {

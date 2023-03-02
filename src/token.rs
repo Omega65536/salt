@@ -7,7 +7,6 @@ pub enum Token {
     If,
     While,
     Return,
-    Let,
     Print,
     Time,
     True,

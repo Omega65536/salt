@@ -1,42 +1,31 @@
 fn main() {
-    let start = time();
-    primes_in_range(1000, 2000);
-    let stop = time();
-    let delta = stop - start;
+    start = time();
+    primes_in_range(3, 100);
+    stop = time();
+    delta = stop - start;
     print(delta);
 }
 
-fn fibonacci(i) {
-    if i == 0 {
-        return 0;
-    }
-    if i == 1 {
-        return 1;
-    }
-    return fibonacci(i - 1) + fibonacci(i - 2);
-}
-
 fn primes_in_range(from, to) {
-    let num_primes = 0;
-    let i = from;
+    num_primes = 0;
+    i = from;
     while i < to {
         if is_prime(i) {
-            let num_primes = num_primes + 1;
+            num_primes = num_primes + 1;
 	    print(i);
 	}
-	let i = i + 1;
+	i = i + 1;
     }
     return num_primes;
 }
-    
 
 fn is_prime(i) {
-    let j = 2;
+    j = 2;
     while j < i {
         if i % j == 0 {
 	    return false;
 	}
-	let j = j + 1;
+	j = j + 1;
     }
     return true;
 }
